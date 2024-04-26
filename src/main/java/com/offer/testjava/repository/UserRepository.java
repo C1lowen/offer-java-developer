@@ -1,9 +1,9 @@
 package com.offer.testjava.repository;
 
+import com.offer.testjava.dto.CreateUserDTO;
 import com.offer.testjava.dto.UpdateUserDTO;
-import com.offer.testjava.model.Users;
-import org.apache.catalina.User;
-import org.springframework.beans.factory.annotation.Value;
+import com.offer.testjava.mapper.UserMapper;
+import com.offer.testjava.model.User;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
@@ -11,11 +11,11 @@ import java.util.*;
 @Repository
 public class UserRepository {
 
-    private final List<Users> users = Collections.synchronizedList(new ArrayList<>());
+    private final List<User> users = Collections.synchronizedList(new ArrayList<>());
 
 
-    public void addUser(Users user) {
-        Users updatedUser = findByEmail(user.getEmail())
+    public void addUser(User user) {
+        User updatedUser = findById(user.getId())
                 .map(currentUser -> {
                     currentUser.setDate(user.getDate());
                     currentUser.setFirstName(user.getFirstName());
@@ -31,24 +31,28 @@ public class UserRepository {
         }
     }
 
-    public Optional<Users> findByEmail(String email) {
+    public Optional<User> findById(Integer id) {
         return users.stream()
-                .filter(user -> user.getEmail().equals(email))
+                .filter(user -> user.getId().equals(id))
                 .findFirst();
     }
 
-    public Boolean updateAllName(UpdateUserDTO updateUser) {
-        return findByEmail(updateUser.getEmail())
+    public Boolean updateAllName(Integer id, UpdateUserDTO updateUser) {
+        return findById(id)
                 .map(user -> {
-                    user.setFirstName(updateUser.getFirstName());
-                    user.setLastName(updateUser.getLastName());
+                    if (updateUser.getFirstName() != null && !updateUser.getFirstName().isEmpty()) {
+                        user.setFirstName(updateUser.getFirstName());
+                    }
+                    if (updateUser.getLastName() != null && !updateUser.getLastName().isEmpty()) {
+                        user.setLastName(updateUser.getLastName());
+                    }
                     return true;
                 })
                 .orElse(false);
     }
 
-    public Boolean deleteUser(String email) {
-        return findByEmail(email)
+    public Boolean deleteUser(Integer id) {
+        return findById(id)
                 .map(user -> {
                     users.remove(user);
                     return true;
@@ -56,15 +60,18 @@ public class UserRepository {
                 .orElse(false);
     }
 
-    public List<Users> findAllUsersByBirthdateRange(Date dateFrom, Date dateTo) {
+    public List<CreateUserDTO> findAllUsersByBirthdateRange(Date dateFrom, Date dateTo) {
         return users.stream()
                 .filter(user -> user.getDate().after(dateFrom) && dateTo.after(user.getDate()))
+                .map(UserMapper::mapToDto)
                 .toList();
     }
 
 
-    public List<Users> getAllUser() {
-        return users;
+    public List<CreateUserDTO> getAllUsers() {
+        return users.stream()
+                .map(UserMapper::mapToDto)
+                .toList();
     }
 
 }

@@ -1,5 +1,6 @@
 package com.offer.testjava.exception;
 
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -14,16 +15,28 @@ import java.util.List;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<String> handleValidationExceptions(MethodArgumentNotValidException ex) {
+    public ResponseEntity<?> handleValidationExceptions(MethodArgumentNotValidException ex) {
         BindingResult result = ex.getBindingResult();
         List<FieldError> fieldErrors = result.getFieldErrors();
-        StringBuilder errorMessage = new StringBuilder();
 
 
-        for (FieldError fieldError : fieldErrors) {
-            errorMessage.append(fieldError.getDefaultMessage()).append("\n");
-        }
+       return new ResponseEntity<>(ErrorResponse.builder().errors(fieldErrors.stream()
+                .map(DefaultMessageSourceResolvable::getDefaultMessage)
+                .toList()), HttpStatus.BAD_REQUEST);
+    }
 
-        return new ResponseEntity<>(errorMessage.toString(), HttpStatus.BAD_REQUEST);
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<?> handleNotFoundExceptions(NotFoundException ex) {
+        return new ResponseEntity<>(ErrorResponse.builder().errorMessage(ex.getMessage()).build(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(ApiException.class)
+    public ResponseEntity<?> handleApiExceptions(ApiException ex) {
+        return new ResponseEntity<>(ErrorResponse.builder().errorMessage(ex.getMessage()).build(), ex.getHttpStatus());
+    }
+
+    @ExceptionHandler(EmptyDataException.class)
+    public ResponseEntity<?> handleApiExceptions(EmptyDataException ex) {
+        return new ResponseEntity<>(ErrorResponse.builder().errorMessage(ex.getMessage()).build(), ex.getHttpStatus());
     }
 }

@@ -12,20 +12,16 @@ import java.util.Date;
 import jakarta.validation.constraints.NotNull;
 
 @Data
-public class Users implements Serializable {
-    @NotBlank(message = "Please provide a first name.")
+public class User implements Serializable {
+
+    private Integer id;
+
     private String firstName;
 
-    @NotBlank(message = "Please provide a last name.")
     private String lastName;
 
-    @Email(message = "Please provide a valid email address.")
-    @NotBlank(message = "Please provide an email address.")
     private String email;
 
-    @NotNull(message = "Please provide a date.")
-    @Past(message = "Please provide a past date.")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy")
     private Date date;
     private String address;
     private String phoneNumber;

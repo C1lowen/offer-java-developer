@@ -1,8 +1,12 @@
 package com.offer.testjava.service;
 
 
+import com.offer.testjava.dto.CreateUserDTO;
 import com.offer.testjava.dto.UpdateUserDTO;
-import com.offer.testjava.model.Users;
+import com.offer.testjava.exception.ApiException;
+import com.offer.testjava.exception.EmptyDataException;
+import com.offer.testjava.exception.NotFoundException;
+import com.offer.testjava.model.User;
 import com.offer.testjava.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,8 +19,6 @@ import java.time.Period;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
 
 @Service
 @RequiredArgsConstructor
@@ -27,35 +29,43 @@ public class UserService {
 
     private final UserRepository userRepository;
 
-    public ResponseEntity<String> addUser(Users user) {
+    public void addUser(User user) {
         Integer ageUser = getAgeUser(user.getDate());
 
         if(ageUser < ageLimit) {
-            return ResponseEntity.badRequest().body("You are under 18 years old!");
+            throw new ApiException("You are under 18 years old", HttpStatus.BAD_REQUEST);
         }
 
         userRepository.addUser(user);
-
-        return ResponseEntity.ok("Ok");
     }
 
-    public ResponseEntity<String> updateAllName(UpdateUserDTO updateUserDTO) {
-        Boolean updateUser = userRepository.updateAllName(updateUserDTO);
+    public void updateAllName(Integer id, UpdateUserDTO updateUserDTO) {
+        if((updateUserDTO.getFirstName() == null || updateUserDTO.getFirstName().isEmpty())
+                && (updateUserDTO.getLastName() == null || updateUserDTO.getLastName().isEmpty())) {
+            throw new EmptyDataException("The data you sent is empty", HttpStatus.BAD_REQUEST);
+        }
 
-        return updateUser ? ResponseEntity.ok("User update") : ResponseEntity.badRequest().body("No such user found");
+        Boolean updateUser = userRepository.updateAllName(id, updateUserDTO);
+
+        if(!updateUser) {
+            throw new NotFoundException("No such user found", HttpStatus.NOT_FOUND);
+        }
     }
 
-    public List<Users> getAllUser() {
-        return userRepository.getAllUser();
+    public List<CreateUserDTO> getAllUsers() {
+        return userRepository.getAllUsers();
     }
 
-    public ResponseEntity<String> deleteUser(String email) {
-        Boolean deleteUser = userRepository.deleteUser(email);
 
-        return deleteUser ? ResponseEntity.ok("User delete") : ResponseEntity.badRequest().body("No such user found");
+    public void deleteUser(Integer id) {
+        Boolean deleteUser = userRepository.deleteUser(id);
+
+        if(!deleteUser) {
+            throw new NotFoundException("No such user found", HttpStatus.NOT_FOUND);
+        }
     }
 
-    public List<Users> getUsersByBirthdateRange(Date dateFrom, Date dateTo) {
+    public List<CreateUserDTO> getUsersByBirthdateRange(Date dateFrom, Date dateTo) {
         return userRepository.findAllUsersByBirthdateRange(dateFrom, dateTo);
     }
 
