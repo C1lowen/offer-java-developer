@@ -37,8 +37,8 @@ public class UserRepository {
                 .findFirst();
     }
 
-    public Boolean updateAllName(Integer id, UpdateUserDTO updateUser) {
-        return findById(id)
+    public void updateNames(Integer id, UpdateUserDTO updateUser) {
+        findById(id)
                 .map(user -> {
                     if (updateUser.getFirstName() != null && !updateUser.getFirstName().isEmpty()) {
                         user.setFirstName(updateUser.getFirstName());
@@ -47,17 +47,11 @@ public class UserRepository {
                         user.setLastName(updateUser.getLastName());
                     }
                     return true;
-                })
-                .orElse(false);
+                });
     }
 
-    public Boolean deleteUser(Integer id) {
-        return findById(id)
-                .map(user -> {
-                    users.remove(user);
-                    return true;
-                })
-                .orElse(false);
+    public void deleteUser(User user) {
+        users.remove(user);
     }
 
     public List<CreateUserDTO> findAllUsersByBirthdateRange(Date dateFrom, Date dateTo) {

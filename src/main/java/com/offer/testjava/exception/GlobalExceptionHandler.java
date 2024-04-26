@@ -20,14 +20,9 @@ public class GlobalExceptionHandler {
         List<FieldError> fieldErrors = result.getFieldErrors();
 
 
-       return new ResponseEntity<>(ErrorResponse.builder().errors(fieldErrors.stream()
+        return new ResponseEntity<>(ErrorResponse.builder().errors(fieldErrors.stream()
                 .map(DefaultMessageSourceResolvable::getDefaultMessage)
-                .toList()), HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<?> handleNotFoundExceptions(NotFoundException ex) {
-        return new ResponseEntity<>(ErrorResponse.builder().errorMessage(ex.getMessage()).build(), HttpStatus.BAD_REQUEST);
+                .toList()).build(), HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(ApiException.class)
@@ -35,8 +30,4 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(ErrorResponse.builder().errorMessage(ex.getMessage()).build(), ex.getHttpStatus());
     }
 
-    @ExceptionHandler(EmptyDataException.class)
-    public ResponseEntity<?> handleApiExceptions(EmptyDataException ex) {
-        return new ResponseEntity<>(ErrorResponse.builder().errorMessage(ex.getMessage()).build(), ex.getHttpStatus());
-    }
 }

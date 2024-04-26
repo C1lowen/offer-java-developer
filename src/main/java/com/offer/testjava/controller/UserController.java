@@ -3,6 +3,7 @@ package com.offer.testjava.controller;
 
 import com.offer.testjava.dto.CreateUserDTO;
 import com.offer.testjava.dto.UpdateUserDTO;
+import com.offer.testjava.exception.ValidationException;
 import com.offer.testjava.mapper.UserMapper;
 import com.offer.testjava.model.User;
 import com.offer.testjava.service.UserService;
@@ -10,10 +11,10 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.validation.annotation.Validated;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -39,11 +40,16 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateAllName(
+    public ResponseEntity<?> updateNames(
             @PathVariable("id") Integer id,
             @Valid @RequestBody UpdateUserDTO updateUser) {
 
-        userService.updateAllName(id, updateUser);
+        if(StringUtils.hasText(updateUser.getFirstName()) && StringUtils.hasText(updateUser.getLastName())) {
+            throw new ValidationException("The data you sent is empty");
+        }
+
+        userService.updateNames(id, updateUser);
+
         return ResponseEntity.ok().build();
     }
 
@@ -61,7 +67,7 @@ public class UserController {
             @RequestParam("to") @DateTimeFormat(pattern = "dd-MM-yyyy") Date dateTo
     ) {
         if (dateFrom.after(dateTo)) {
-            return ResponseEntity.badRequest().build();
+            throw new ValidationException("Date 'from' is greater than date 'to'");
         }
 
         List<CreateUserDTO> usersInRange = userService.getUsersByBirthdateRange(dateFrom, dateTo);
