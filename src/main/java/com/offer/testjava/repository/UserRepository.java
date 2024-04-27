@@ -1,24 +1,28 @@
 package com.offer.testjava.repository;
 
-import com.offer.testjava.dto.CreateUserDTO;
 import com.offer.testjava.dto.UpdateUserDTO;
-import com.offer.testjava.mapper.UserMapper;
 import com.offer.testjava.model.User;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import static org.springframework.util.StringUtils.hasText;
 
 @Repository
+@RequiredArgsConstructor
 public class UserRepository {
 
-    private final List<User> users = Collections.synchronizedList(new ArrayList<>());
-
+    private final List<User> users;
 
     public void addUser(User user) {
         User updatedUser = findById(user.getId())
                 .map(currentUser -> {
                     currentUser.setDate(user.getDate());
                     currentUser.setFirstName(user.getFirstName());
+                    currentUser.setEmail(user.getEmail());
                     currentUser.setLastName(user.getLastName());
                     currentUser.setAddress(user.getAddress());
                     currentUser.setPhoneNumber(user.getPhoneNumber());
@@ -26,7 +30,7 @@ public class UserRepository {
                 })
                 .orElse(null);
 
-        if(updatedUser == null) {
+        if (updatedUser == null) {
             users.add(user);
         }
     }
@@ -40,10 +44,10 @@ public class UserRepository {
     public void updateNames(Integer id, UpdateUserDTO updateUser) {
         findById(id)
                 .map(user -> {
-                    if (updateUser.getFirstName() != null && !updateUser.getFirstName().isEmpty()) {
+                    if (hasText(updateUser.getFirstName())) {
                         user.setFirstName(updateUser.getFirstName());
                     }
-                    if (updateUser.getLastName() != null && !updateUser.getLastName().isEmpty()) {
+                    if (hasText(updateUser.getLastName())) {
                         user.setLastName(updateUser.getLastName());
                     }
                     return true;
@@ -54,17 +58,15 @@ public class UserRepository {
         users.remove(user);
     }
 
-    public List<CreateUserDTO> findAllUsersByBirthdateRange(Date dateFrom, Date dateTo) {
+    public List<User> findAllUsersByBirthdateRange(Date dateFrom, Date dateTo) {
         return users.stream()
                 .filter(user -> user.getDate().after(dateFrom) && dateTo.after(user.getDate()))
-                .map(UserMapper::mapToDto)
                 .toList();
     }
 
 
-    public List<CreateUserDTO> getAllUsers() {
+    public List<User> getAllUsers() {
         return users.stream()
-                .map(UserMapper::mapToDto)
                 .toList();
     }
 }
