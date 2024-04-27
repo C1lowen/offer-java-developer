@@ -27,11 +27,9 @@ public class UserController {
     private final UserService userService;
 
     @PostMapping
-    public ResponseEntity<?> addUser(@Valid @RequestBody CreateUserDTO user) {
+    public void addUser(@Valid @RequestBody CreateUserDTO user) {
         User userMap = UserMapper.mapFromDto(user);
         userService.addUser(userMap);
-
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping
@@ -40,29 +38,26 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<?> updateNames(
+    public void updateNames(
             @PathVariable("id") Integer id,
-            @Valid @RequestBody UpdateUserDTO updateUser) {
+            @RequestBody UpdateUserDTO updateUser) {
 
-        if(StringUtils.hasText(updateUser.getFirstName()) && StringUtils.hasText(updateUser.getLastName())) {
+        if(!StringUtils.hasText(updateUser.getFirstName()) && !StringUtils.hasText(updateUser.getLastName())) {
             throw new ValidationException("The data you sent is empty");
         }
 
         userService.updateNames(id, updateUser);
-
-        return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteUser(
+    public void deleteUser(
             @PathVariable("id") Integer id
     ) {
         userService.deleteUser(id);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<CreateUserDTO>> deleteUser(
+    public ResponseEntity<List<CreateUserDTO>> searchByDate(
             @RequestParam("from") @DateTimeFormat(pattern = "dd-MM-yyyy") Date dateFrom,
             @RequestParam("to") @DateTimeFormat(pattern = "dd-MM-yyyy") Date dateTo
     ) {
